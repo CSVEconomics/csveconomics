@@ -8,7 +8,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Home() {
-  const { data: session, status } = useSession();
+ const sessionHook = useSession();
+
+if (!sessionHook || typeof sessionHook !== 'object') {
+  return <main className="p-10 text-center text-gray-600">Lade Sitzung …</main>;
+}
+
+const { data: session, status } = sessionHook;
+
 
   if (status === 'loading') {
     return <main className="p-10 text-center text-gray-600">Lade Sitzung …</main>;
