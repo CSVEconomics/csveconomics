@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "csveconomics.de" }],
+      "destination": "https://csveconomics.de/$1",
+      "permanent": true
+    }
+  ]
+}
