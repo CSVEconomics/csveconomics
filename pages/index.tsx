@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import { useSession, signIn, signOut } from 'next-auth/react';
@@ -7,7 +9,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Home() {
-  const { data: session } = useSession();
+  const sessionHook = useSession();
+
+if (!sessionHook || typeof sessionHook !== 'object') {
+  return <main className="p-10 text-center text-gray-600">Lade Sitzung …</main>;
+}
+
+const { data: session } = sessionHook;
 
   const [csvData, setCsvData] = useState<any[] | null>(null);
   const [question, setQuestion] = useState('');
