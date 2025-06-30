@@ -5,7 +5,6 @@ import Papa from 'papaparse';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
-import '../styles/globals.css';
 
 export default function Home() {
   const { data: session } = useSession();
@@ -171,3 +170,4 @@ export default function Home() {
     </main>
   );
 }
+
