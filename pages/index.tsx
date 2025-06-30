@@ -1,5 +1,6 @@
 'use client';
-export const dynamic = "force-dynamic";
+
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
@@ -8,18 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Home() {
- const sessionHook = useSession();
-
-if (!sessionHook || typeof sessionHook !== 'object') {
-  return <main className="p-10 text-center text-gray-600">Lade Sitzung …</main>;
-}
-
-const { data: session, status } = sessionHook;
-
-
-  if (status === 'loading') {
-    return <main className="p-10 text-center text-gray-600">Lade Sitzung …</main>;
-  }
+  const { data: session, status } = useSession();
 
   const [csvData, setCsvData] = useState<any[] | null>(null);
   const [question, setQuestion] = useState('');
@@ -33,6 +23,10 @@ const { data: session, status } = sessionHook;
       setRemainingUses(savedUses ? parseInt(savedUses) : 3);
     }
   }, [session]);
+
+  if (status === 'loading') {
+    return <main className="p-10 text-center text-gray-600">Lade Sitzung …</main>;
+  }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,24 +47,15 @@ const { data: session, status } = sessionHook;
     const formattedCsv = csvData.map((row, index) => `Zeile ${index + 1}: ${Object.entries(row).map(([key, value]) => `${key}: ${value}`).join(', ')}`).join('\n');
     const prompt = `Du bist ein Datenanalyse-Tool. Beantworte die folgende Frage auf Basis der folgenden CSV-Daten.\nDaten:\n${formattedCsv}\nFrage: ${question}`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('/api/analyse', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [
-          { role: 'system', content: 'Du bist ein hilfsbereites Datenanalyse-Tool.' },
-          { role: 'user', content: prompt }
-        ]
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
     });
 
     const result = await response.json();
-    if (result?.choices?.[0]?.message?.content) {
-      setAnswer(result.choices[0].message.content);
+    if (result?.answer) {
+      setAnswer(result.answer);
     } else {
       setAnswer('Keine gültige Antwort erhalten.');
     }
@@ -85,8 +70,7 @@ const { data: session, status } = sessionHook;
   };
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12 font-sans bg-gray-50 text-gray-900">
-      {/* Header */}
+    <main className="max-w-6xl mx-auto px-6 py-12 font-sans bg-gray-50 text-gray-900 min-h-screen">
       <header className="flex flex-col sm:flex-row justify-between items-center border-b pb-6 mb-12">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/logo.png" alt="CSVEconomics Logo" width={48} height={48} />
@@ -98,7 +82,7 @@ const { data: session, status } = sessionHook;
               <span className="text-gray-700 text-sm">👋 Hallo, {session.user.name || 'Benutzer'}</span>
               <button
                 onClick={() => signOut()}
-                className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded transition"
+                className="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded"
               >
                 Logout
               </button>
@@ -106,7 +90,7 @@ const { data: session, status } = sessionHook;
           ) : (
             <button
               onClick={() => signIn()}
-              className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded transition"
+              className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded"
             >
               Login
             </button>
@@ -114,7 +98,6 @@ const { data: session, status } = sessionHook;
         </div>
       </header>
 
-      {/* Hero */}
       <section className="text-center mb-16">
         <h2 className="text-4xl sm:text-5xl font-bold mb-4">Analysiere deine CSV-Dateien mit KI</h2>
         <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
@@ -122,7 +105,6 @@ const { data: session, status } = sessionHook;
         </p>
       </section>
 
-      {/* Tool Interface */}
       <section className="bg-white p-8 rounded-xl shadow-md">
         {!session?.user ? (
           <p className="text-center text-gray-500 text-lg">Bitte melde dich an, um das Tool zu nutzen.</p>
@@ -151,7 +133,7 @@ const { data: session, status } = sessionHook;
               <button
                 onClick={handleAsk}
                 disabled={loading || !csvData || !question || remainingUses <= 0}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded transition disabled:opacity-50"
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded disabled:opacity-50"
               >
                 {loading ? 'Analysiere...' : 'Analyse starten'}
               </button>
@@ -167,13 +149,12 @@ const { data: session, status } = sessionHook;
         )}
       </section>
 
-      {/* Premium Banner */}
       <section className="mt-20 text-center bg-blue-50 border border-blue-200 p-8 rounded-lg">
         <h3 className="text-2xl font-bold text-blue-700 mb-2">Mehr Power mit Premium</h3>
         <p className="text-blue-600 mb-4 text-base sm:text-lg">
           Unbegrenzte Analysen, schneller Support & bevorzugte Verarbeitung.
         </p>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition">
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
           Upgrade auf Premium
         </button>
       </section>
