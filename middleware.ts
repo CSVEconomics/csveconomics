@@ -1,21 +1,29 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+export function middleware(request: NextRequest) {
+  const basicAuth = request.headers.get('authorization');
 
-  // ⚠️ Deine E-Mail hier eintragen
-  const allowedEmail = 'deine@email.de';
+  const USER = 'admin'; // Dein Benutzername
+  const PASS = process.env.SITE_PASSWORD || '511maRjus'; // Passwort aus Umgebungsvariable
 
-  // Wenn kein Token vorhanden oder E-Mail nicht erlaubt → Zugriff verweigern
-  if (!token || token.email !== allowedEmail) {
-    return new NextResponse('Zugriff verweigert', { status: 403 });
+  if (basicAuth) {
+    const authValue = basicAuth.split(' ')[1];
+    const [user, pass] = atob(authValue).split(':');
+
+    if (user === USER && pass === PASS) {
+      return NextResponse.next();
+    }
   }
 
-  return NextResponse.next();
+  return new NextResponse('Auth required', {
+    status: 401,
+    headers: {
+      'WWW-Authenticate': 'Basic realm="Protected"',
+    },
+  });
 }
 
 export const config = {
-  matcher: ['/((?!_next|api|favicon.ico|public|images).*)'], // schützt alle Seiten außer statische Dateien & API
+  matcher: ['/((?!_next|api|favicon.ico|public|images).*)'],
 };
