@@ -9,6 +9,7 @@
   "dependencies": {
     "next": "latest",
     "next-auth": "^4.24.11",
+    "openai": "^5.8.2",
     "papaparse": "^5.5.3",
     "react": "latest",
     "react-dom": "latest",
