@@ -6,14 +6,10 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
-
   const { prompt } = req.body;
 
   if (!prompt) {
-    return res.status(400).json({ message: 'Prompt fehlt' });
+    return res.status(400).json({ error: 'Kein Prompt übermittelt.' });
   }
 
   try {
@@ -22,10 +18,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       messages: [{ role: 'user', content: prompt }],
     });
 
-    const answer = completion.choices[0]?.message?.content || 'Keine Antwort erhalten.';
+    const answer = completion.choices?.[0]?.message?.content || 'Keine Antwort erhalten.';
     res.status(200).json({ answer });
   } catch (error: any) {
-    console.error('Fehler bei der Analyse:', error);
-    res.status(500).json({ message: 'Analyse fehlgeschlagen', error: error.message });
+    console.error('Analyse-Fehler:', error);
+    res.status(500).json({ error: 'Fehler bei der Analyse.' });
   }
 }
